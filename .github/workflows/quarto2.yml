@@ -1,0 +1,35 @@
+name: Render Quarto PDF
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Jupyter Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install jupyter nbformat pyyaml ipykernel
+
+      - name: Setup Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render PDF
+        run: quarto render SIG731-Task-5C-converted.qmd --to pdf
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: SIG731-PDF
+          path: SIG731-Task-5C-converted.pdf
