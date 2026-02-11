@@ -3,7 +3,9 @@ name: Render Quarto report
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:  # allows manual runs
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   render:
@@ -14,36 +16,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Install Quarto CLI
+      # 2. Install Quarto CLI (FIXED: use specific version)
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
-          version: "latest"
+          version: "1.5.57"  # ✅ Latest stable as of Feb 2026[web:17]
 
-      # 3. Setup Python WITH Jupyter (fixes nbformat error)
+      # 3. Setup Python + Jupyter (fixes nbformat error)
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install Jupyter stack
+      - name: Install Jupyter + dependencies
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install jupyter nbformat nbclient ipykernel
-          python -m ipykernel install --user --name python3
+          pip install --upgrade pip
+          pip install jupyter nbformat nbclient ipykernel py7zr pandas numpy
+          python -m ipykernel install --user --name python3 --display-name "Python 3.12"
 
-      # 4. Render the specific QMD to HTML and PDF
-      - name: Render report (HTML + PDF)
-        uses: quarto-dev/quarto-actions/render@v2
-        with:
-          to: "html,pdf"
-          path: SIG731-Task-5C-converted.qmd
+      # 4. Render your QMD to HTML + PDF
+      - name: Render SIG731 report
+        run: |
+          quarto render SIG731-Task-5C-converted.qmd \
+            --to html \
+            --to pdf
 
-      # 5. Upload artifacts (HTML + PDF)
-      - name: Upload rendered files
+      # 5. Upload artifacts for download
+      - name: Upload HTML & PDF
         uses: actions/upload-artifact@v4
         with:
-          name: task5c-report
+          name: sig731-task5c-rendered
           path: |
-            SIG731-Task-5C-converted.html
-            SIG731-Task-5C-converted.pdf
+            SIG731-Task-5C-converted.*
