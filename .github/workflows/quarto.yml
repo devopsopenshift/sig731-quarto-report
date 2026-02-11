@@ -1,4 +1,4 @@
-name: Render Quarto PDF
+name: Render Quarto1 PDF
 
 on:
   push:
